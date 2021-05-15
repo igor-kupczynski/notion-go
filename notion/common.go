@@ -18,7 +18,7 @@ type Annotations struct {
 type RichText struct {
 	PlainText   string      `json:"plain_text,omitempty"`
 	Href        string      `json:"href,omitempty"`
-	Annotations Annotations `json:"annotations,omitempty"` // object ???
+	Annotations Annotations `json:"annotations,omitempty"`
 	Type        string      `json:"type,omitempty"`
 	Content     string      `json:"content,omitempty"`
 	// TODO: links

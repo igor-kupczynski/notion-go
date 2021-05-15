@@ -2,7 +2,6 @@ package notion
 
 import (
 	"encoding/json"
-	"fmt"
 )
 
 // Database represents a notion database
@@ -44,8 +43,10 @@ func (c *Client) ListDatabases() (*DatabaseList, error) {
 	}
 
 	defer resp.Body.Close()
+
+	// TODO: Make a generic decode function
 	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("non 200 status code: %d", resp.StatusCode) // TODO: parse error from response
+		return nil, parseErrorFromResponse(resp)
 	}
 
 	dbs := &DatabaseList{}
