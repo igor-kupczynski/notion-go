@@ -17,7 +17,7 @@ type Client struct {
 	httpClient http.Client
 }
 
-func (c *Client) request(method string, url string, query map[string]string, payload io.Reader) (*http.Request, error) {
+func (c *Client) buildRequest(method string, url string, query map[string]string, payload io.Reader) (*http.Request, error) {
 	req, err := http.NewRequest(method, root+url, payload)
 	if err != nil {
 		return nil, err

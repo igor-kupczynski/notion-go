@@ -1,9 +1,5 @@
 package notion
 
-import (
-	"encoding/json"
-)
-
 // Database represents a notion database
 //
 // See https://developers.notion.com/reference/database
@@ -23,7 +19,6 @@ type Database struct {
 type DatabaseList struct {
 	HasMore    bool       `json:"has_more,omitempty"`
 	NextCursor string     `json:"next_cursor,omitempty"`
-	Object     string     `json:"object,omitempty"`
 	Results    []Database `json:"results,omitempty"`
 }
 
@@ -31,28 +26,19 @@ type DatabaseList struct {
 //
 // See https://developers.notion.com/reference/get-databases
 func (c *Client) ListDatabases(page Pagination) (*DatabaseList, error) {
-	r, err := c.request("GET", "/databases", page.query(), nil)
+	r, err := c.buildRequest("GET", "/databases", page.query(), nil)
 	if err != nil {
-		return nil, err
+		return nil, ClientError{Reason: "can't create a request", Inner: err} // TODO: test
 	}
 
 	resp, err := c.httpClient.Do(r)
 	if err != nil {
-		return nil, err // TODO: introduce common error classes
-	}
-
-	defer resp.Body.Close()
-
-	// TODO: Make a generic decode function
-	if resp.StatusCode != 200 {
-		return nil, parseErrorFromResponse(resp)
+		return nil, TransportError{URL: r.URL.String(), Inner: err} // TODO: test
 	}
 
 	dbs := &DatabaseList{}
-	err = json.NewDecoder(resp.Body).Decode(dbs)
-	if err != nil {
-		return nil, err // TODO: introduce common error classes
+	if err = decodeResponse(resp, dbs); err != nil {
+		return nil, err
 	}
-
 	return dbs, nil
 }
