@@ -3,6 +3,7 @@ package notion
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 )
 
@@ -22,8 +23,7 @@ func (n ApiServerError) Error() string {
 func parseErrorFromResponse(resp *http.Response) ApiServerError {
 	var apiErr ApiServerError
 	if err := json.NewDecoder(resp.Body).Decode(&apiErr); err != nil {
-		// can't process the response, let's just log the error and return the status code
-		// TODO: Log the error
+		log.Printf("Can't decode the response: %v", err)
 	}
 	apiErr.HttpStatusCode = resp.StatusCode
 	return apiErr
