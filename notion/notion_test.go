@@ -2,11 +2,94 @@ package notion
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"net/http"
 	"reflect"
+	"strings"
 	"testing"
 )
+
+func Test_buildRequest(t *testing.T) {
+	type args struct {
+		method  string
+		url     string
+		query   map[string]string
+		payload io.Reader
+	}
+	tests := []struct {
+		name       string
+		args       args
+		assertions []func(req *http.Request) string
+		wantErr    bool
+	}{
+		{
+			name: "should build the request",
+			args: args{
+				method: "GET",
+				url:    "/pages",
+			},
+			assertions: []func(req *http.Request) string{
+				func(req *http.Request) string {
+					if req.Method != "GET" {
+						return "method = GET"
+					}
+					return ""
+				},
+				func(req *http.Request) string {
+					if req.URL.String() != "https://api.notion.com/v1/pages" {
+						return "URL = https://api.notion.com/v1/pages"
+					}
+					return ""
+				},
+				func(req *http.Request) string {
+					if req.Header.Get("Notion-Version") != version {
+						return fmt.Sprintf("Header Notion-Version = %s", version)
+					}
+					return ""
+				},
+			},
+		},
+		{
+			name: "should include the query params",
+			args: args{
+				query: map[string]string{
+					"foo": "bar",
+					"abc": "123",
+				},
+			},
+			assertions: []func(req *http.Request) string{
+				func(req *http.Request) string {
+					url := req.URL.String()
+					if !strings.Contains(url, "foo=bar") || !strings.Contains(url, "abc=123") {
+						return "foo=bar & abc=123 in query params"
+					}
+					return ""
+				},
+			},
+		},
+		{
+			name: "should error on illegal parameters",
+			args: args{
+				method: "🦄",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, gotErr := buildRequest(tt.args.method, tt.args.url, tt.args.query, tt.args.payload)
+			for _, assertion := range tt.assertions {
+				if msg := assertion(got); msg != "" {
+					t.Errorf("buildRequest() = %v, want %s", got, msg)
+				}
+			}
+			if (gotErr != nil) != tt.wantErr {
+				t.Errorf("buildRequest() gotErr=%v, wantErr=%t", gotErr, tt.wantErr)
+			}
+		})
+	}
+}
 
 func Test_decodeResponse(t *testing.T) {
 	tests := []struct {

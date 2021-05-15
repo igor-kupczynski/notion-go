@@ -26,18 +26,8 @@ type DatabaseList struct {
 //
 // See https://developers.notion.com/reference/get-databases
 func (c *Client) ListDatabases(page Pagination) (*DatabaseList, error) {
-	r, err := c.buildRequest("GET", "/databases", page.query(), nil)
-	if err != nil {
-		return nil, ClientError{Reason: "can't create a request", Inner: err} // TODO: test
-	}
-
-	resp, err := c.httpClient.Do(r)
-	if err != nil {
-		return nil, TransportError{URL: r.URL.String(), Inner: err} // TODO: test
-	}
-
 	dbs := &DatabaseList{}
-	if err = decodeResponse(resp, dbs); err != nil {
+	if err := c.makeRequest("GET", "/databases", page.query(), nil, dbs); err != nil {
 		return nil, err
 	}
 	return dbs, nil
