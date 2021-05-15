@@ -30,9 +30,8 @@ type DatabaseList struct {
 // ListDatabases lists all databases shared with the authenticated integration.
 //
 // See https://developers.notion.com/reference/get-databases
-func (c *Client) ListDatabases() (*DatabaseList, error) {
-	// TODO: pagination
-	r, err := c.request("GET", "databases", nil)
+func (c *Client) ListDatabases(page Pagination) (*DatabaseList, error) {
+	r, err := c.request("GET", "/databases", page.query(), nil)
 	if err != nil {
 		return nil, err
 	}

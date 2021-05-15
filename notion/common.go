@@ -1,6 +1,8 @@
 package notion
 
-// Annotation contains style information which applies to the whole rich text object.
+import "strconv"
+
+// Annotations contains style information which applies to the whole rich text object.
 //
 // See https://developers.notion.com/reference/rich-text#annotations
 type Annotations struct {
@@ -24,4 +26,27 @@ type RichText struct {
 	// TODO: links
 	// TODO: mentions
 	// TODO: equations
+}
+
+// Pagination represents a request pagination params
+//
+// See https://developers.notion.com/reference/pagination
+type Pagination struct {
+	StartCursor string
+	PageSize    int
+}
+
+func (p *Pagination) query() map[string]string {
+	if p == nil {
+		return nil
+	}
+	query := map[string]string{
+		"page_size": strconv.Itoa(p.PageSize),
+	}
+
+	if p.StartCursor != "" {
+		query["start_cursor"] = p.StartCursor
+	}
+
+	return query
 }
