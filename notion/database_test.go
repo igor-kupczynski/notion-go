@@ -1,6 +1,7 @@
 package notion
 
 import (
+	"context"
 	"os"
 	"strings"
 	"testing"
@@ -14,14 +15,14 @@ func TestClient_ListDatabases_Integration(t *testing.T) {
 
 	wantTitle := "Task List 5132beee"
 
-	c := &Client{Token: token}
+	s := New(token)
 
 	// Get the list of the databases, list them one-by-one to exercise the pagination code path
 	var got []Database
 
 	page := Pagination{PageSize: 1}
 	for {
-		result, err := c.ListDatabases(page)
+		result, err := s.ListDatabases(context.Background(), page)
 		if err != nil {
 			t.Errorf("ListDatabases(%v) error = %v", page, err)
 			return

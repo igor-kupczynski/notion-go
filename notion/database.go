@@ -1,5 +1,10 @@
 package notion
 
+import (
+	"context"
+	"net/http"
+)
+
 // Database represents a notion database
 //
 // See https://developers.notion.com/reference/database
@@ -25,9 +30,10 @@ type DatabaseList struct {
 // ListDatabases lists all databases shared with the authenticated integration.
 //
 // See https://developers.notion.com/reference/get-databases
-func (c *Client) ListDatabases(page Pagination) (*DatabaseList, error) {
+func (s *Service) ListDatabases(ctx context.Context, page Pagination) (*DatabaseList, error) {
 	dbs := &DatabaseList{}
-	if err := c.makeRequest("GET", "/databases", page.query(), nil, dbs); err != nil {
+	fail := &ApplicationError{}
+	if err := s.client.Do(ctx, http.MethodGet, "/databases", page.query(), nil, dbs, fail); err != nil {
 		return nil, err
 	}
 	return dbs, nil
