@@ -52,3 +52,11 @@ func (p *Pagination) query() map[string]string {
 
 	return query
 }
+
+// Error represents an error returned by the API
+//
+// See https://developers.notion.com/reference/errors
+type Error struct {
+	Code    string `json:"code,omitempty"`
+	Message string `json:"message,omitempty"`
+}

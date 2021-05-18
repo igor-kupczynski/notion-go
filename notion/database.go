@@ -32,8 +32,8 @@ type DatabaseList struct {
 // See https://developers.notion.com/reference/get-databases
 func (s *Service) ListDatabases(ctx context.Context, page Pagination) (*DatabaseList, error) {
 	dbs := &DatabaseList{}
-	fail := &ApplicationError{}
-	if err := s.client.Do(ctx, http.MethodGet, "/databases", page.query(), nil, dbs, fail); err != nil {
+	apiErr := &Error{}
+	if err := s.client.Do(ctx, http.MethodGet, "/databases", page.query(), nil, dbs, apiErr); err != nil {
 		return nil, err
 	}
 	return dbs, nil

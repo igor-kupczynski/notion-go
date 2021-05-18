@@ -2,17 +2,13 @@
 package client
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 )
-
-// Options can customize Client behavior
-type Options struct {
-	RootURL string
-}
 
 // LocalError represents a client-side error, i.e. client can't build the request or parse the response
 type LocalError struct {
@@ -22,9 +18,9 @@ type LocalError struct {
 
 func (e LocalError) Error() string {
 	if e.Inner != nil {
-		return fmt.Sprintf("client error: %s: %v", e.Reason, e.Inner)
+		return fmt.Sprintf("local error: %s: %v", e.Reason, e.Inner)
 	}
-	return fmt.Sprintf("client error: %s", e.Reason)
+	return fmt.Sprintf("local error: %s", e.Reason)
 }
 
 func (e LocalError) Unwrap() error {
@@ -38,7 +34,7 @@ type TransportError struct {
 }
 
 func (e TransportError) Error() string {
-	return fmt.Sprintf("request to %s failed: %v", e.URL, e.Inner)
+	return fmt.Sprintf("transport error: request to %s failed: %v", e.URL, e.Inner)
 }
 
 func (e TransportError) Unwrap() error {
@@ -52,6 +48,11 @@ type ApplicationError struct {
 
 func (e ApplicationError) Error() string {
 	return fmt.Sprintf("application error: %v", e.v)
+}
+
+// Options can customize Client behavior
+type Options struct {
+	RootURL string
 }
 
 // Client is a wrapper over http.Client to make it easier to use from the notion API
@@ -78,7 +79,7 @@ func (c *Client) Do(
 	method string,
 	path string,
 	query map[string]string,
-	body io.Reader,
+	body interface{},
 	targetSuccess interface{},
 	targetFailure interface{},
 ) error {
@@ -90,8 +91,19 @@ func (c *Client) Do(
 	return c.do(req, targetSuccess, targetFailure)
 }
 
-func (c *Client) newRequest(ctx context.Context, method string, path string, query map[string]string, body io.Reader) (*http.Request, error) {
-	req, err := http.NewRequest(method, c.opts.RootURL+path, body)
+func (c *Client) newRequest(
+	ctx context.Context,
+	method string,
+	path string,
+	query map[string]string,
+	body interface{},
+) (*http.Request, error) {
+	buf, err := c.encode(body)
+	if err != nil {
+		return nil, LocalError{Reason: "failed to encode the body", Inner: err}
+	}
+
+	req, err := http.NewRequest(method, c.opts.RootURL+path, buf)
 	if err != nil {
 		return nil, LocalError{Reason: "failed to create GET request", Inner: err}
 	}
@@ -126,6 +138,14 @@ func (c *Client) do(r *http.Request, targetSuccess interface{}, targetFailure in
 		return LocalError{Reason: "can't decode failure response", Inner: err}
 	}
 	return ApplicationError{v: targetFailure}
+}
+
+func (c *Client) encode(v interface{}) (io.Reader, error) {
+	buf, err := json.Marshal(v)
+	if err != nil {
+		return nil, err
+	}
+	return bytes.NewBuffer(buf), nil
 }
 
 func (c *Client) decode(resp *http.Response, v interface{}) error {
