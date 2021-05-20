@@ -43,7 +43,7 @@ func TestService_RetrieveDatabase(t *testing.T) {
 		wantErrMsg     string
 	}{
 		{
-			name:           "should retreive a database",
+			name:           "should retrieve a database",
 			databaseID:     "e65ccf14-e13b-48d1-a6d1-b14cd84c4bed",
 			respStatusCode: 200,
 			respBody: `{
@@ -234,6 +234,19 @@ func TestService_RetrieveDatabase(t *testing.T) {
 					},
 				},
 			},
+		},
+		{
+			name:           "should parse an error",
+			databaseID:     "not-uuid",
+			respStatusCode: 400,
+			respBody: `{
+			  "object": "error",
+			  "status": 400,
+			  "code": "validation_error",
+			  "message": "The provided database ID is not a valid Notion UUID: e65ccf14-e13b-48d1-a6d1-b14cd84c4be."
+			}`,
+			wantPath:   "/v1/databases/not-uuid",
+			wantErrMsg: "application error: &{validation_error The provided database ID is not a valid Notion UUID: e65ccf14-e13b-48d1-a6d1-b14cd84c4be.}",
 		},
 	}
 	for _, tt := range tests {
