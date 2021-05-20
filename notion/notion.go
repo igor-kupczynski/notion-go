@@ -2,29 +2,51 @@ package notion
 
 import (
 	"fmt"
-	"io"
 	"net/http"
+
+	"notion-go/client"
 )
 
 const version = "2021-05-13"
-const root = "https://api.notion.com/v1/"
+const root = "https://api.notion.com/v1"
 
-// Client is the notion API client
-type Client struct {
-	// Token to use to connect to notion
-	Token string
-
-	httpClient http.Client
+// Service is the facade for the notion API
+type Service struct {
+	client *client.Client
+	token  string
 }
 
-func (c *Client) request(method string, url string, payload io.Reader) (*http.Request, error) {
-	req, err := http.NewRequest(method, root+url, payload)
-	if err != nil {
-		return nil, err
+// New creates a Service
+func New(token string) *Service {
+	return WithCustomHttpClient(token, http.DefaultClient)
+}
+
+// WithCustomHttpClient creates a Service using the custom http.Client
+func WithCustomHttpClient(token string, httpClient *http.Client) *Service {
+	rt := httpClient.Transport
+	if rt == nil {
+		rt = http.DefaultTransport
 	}
+	httpClient.Transport = &transport{
+		token:    token,
+		delegate: rt,
+	}
+	return &Service{
+		client: client.New(
+			httpClient,
+			client.Options{RootURL: root},
+		),
+	}
+}
 
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", c.Token))
-	req.Header.Set("Notion-Version", version)
+type transport struct {
+	token    string
+	delegate http.RoundTripper
+}
 
-	return req, nil
+func (t *transport) RoundTrip(req *http.Request) (*http.Response, error) {
+	r := req.Clone(req.Context())
+	r.Header.Add("Authorization", fmt.Sprintf("Bearer %v", t.token))
+	r.Header.Add("Notion-Version", version)
+	return t.delegate.RoundTrip(r)
 }
