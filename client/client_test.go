@@ -20,7 +20,7 @@ func (f RequestToResponse) RoundTrip(req *http.Request) (*http.Response, error) 
 	return f(req)
 }
 
-// Create a mock http.Client which instead of making an http call will use provided function to provide a reponse
+// Create a mock http.Client which instead of making an http call will use provided function to provide a response
 func RequestCapturingMockHttpClient(f RequestToResponse) (*http.Client, *http.Request) {
 	var capture http.Request
 	return &http.Client{

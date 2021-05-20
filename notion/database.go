@@ -2,6 +2,7 @@ package notion
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 )
 
@@ -9,12 +10,12 @@ import (
 //
 // See https://developers.notion.com/reference/database
 type Database struct {
-	Object         string     `json:"object,omitempty"`
-	ID             string     `json:"id,omitempty"`
-	CreatedTime    string     `json:"created_time,omitempty"`
-	LastEditedTime string     `json:"last_edited_time,omitempty"`
-	Title          []RichText `json:"title,omitempty"`
-	// TODO: properties
+	Object         string              `json:"object,omitempty"`
+	ID             string              `json:"id,omitempty"`
+	CreatedTime    string              `json:"created_time,omitempty"`
+	LastEditedTime string              `json:"last_edited_time,omitempty"`
+	Title          []RichText          `json:"title,omitempty"`
+	Properties     map[string]Property `json:"properties,omitempty"`
 }
 
 // DatabaseList is a response to list databases endpoint
@@ -25,6 +26,18 @@ type DatabaseList struct {
 	HasMore    bool       `json:"has_more,omitempty"`
 	NextCursor string     `json:"next_cursor,omitempty"`
 	Results    []Database `json:"results,omitempty"`
+}
+
+// RetrieveDatabase retrieves a Database object using the ID specified
+//
+// See https://developers.notion.com/reference/get-database
+func (s *Service) RetrieveDatabase(ctx context.Context, databaseID string) (*Database, error) {
+	db := &Database{}
+	apiErr := &Error{}
+	if err := s.client.Do(ctx, http.MethodGet, fmt.Sprintf("/databases/%s", databaseID), nil, nil, db, apiErr); err != nil {
+		return nil, err
+	}
+	return db, nil
 }
 
 // ListDatabases lists all databases shared with the authenticated integration.

@@ -20,15 +20,90 @@ type Annotations struct {
 //
 // See https://developers.notion.com/reference/rich-text
 type RichText struct {
-	PlainText   string      `json:"plain_text,omitempty"`
-	Href        string      `json:"href,omitempty"`
-	Annotations Annotations `json:"annotations,omitempty"`
-	Type        string      `json:"type,omitempty"`
-	Content     string      `json:"content,omitempty"`
+	Type        string       `json:"type,omitempty"`
+	Text        *Text        `json:"text,omitempty"`
+	Annotations *Annotations `json:"annotations,omitempty"`
+	PlainText   string       `json:"plain_text,omitempty"`
+	Href        string       `json:"href,omitempty"`
+	Content     string       `json:"content,omitempty"`
 	// TODO: links
 	// TODO: mentions
 	// TODO: equations
 }
+
+// Text object
+//
+// See https://developers.notion.com/reference/rich-text#text-objects
+type Text struct {
+	Content string `json:"content,omitempty"`
+	// TODO: link
+}
+
+// Property represents any type of the property object
+//
+// See https://developers.notion.com/reference/database#database-properties
+type Property struct {
+	ID             string                  `json:"id,omitempty"`
+	Type           string                  `json:"type,omitempty"`
+	Title          *TitleProperty          `json:"title,omitempty"`
+	Select         *SelectProperty         `json:"select,omitempty"`
+	MultiSelect    *MultiSelectProperty    `json:"multi_select,omitempty"`
+	Checkbox       *CheckboxProperty       `json:"checkbox,omitempty"`
+	CreatedTime    *CreatedTimeProperty    `json:"created_time,omitempty"`
+	LastEditedTime *LastEditedTimeProperty `json:"last_edited_time,omitempty"`
+}
+
+// TitleProperty represents the title property
+//
+// See https://developers.notion.com/reference/database#title-configuration
+type TitleProperty struct{}
+
+// SelectProperty represents the select property
+//
+// See https://developers.notion.com/reference/database#select-configuration
+type SelectProperty struct {
+	Options []SelectOption `json:"options,omitempty"`
+}
+
+// SelectOption represents the options to SelectProperty
+//
+// See https://developers.notion.com/reference/database#select-options
+type SelectOption struct {
+	ID    string `json:"id,omitempty"`
+	Name  string `json:"name,omitempty"`
+	Color string `json:"color,omitempty"`
+}
+
+// MultiSelectProperty represents the select property
+//
+// See https://developers.notion.com/reference/database#multi-select-configuration
+type MultiSelectProperty struct {
+	Options []MultiSelectOption `json:"options,omitempty"`
+}
+
+// MultiSelectOption represents the options to MultiSelectProperty
+//
+// See https://developers.notion.com/reference/database#multi-select-options
+type MultiSelectOption struct {
+	ID    string `json:"id,omitempty"`
+	Name  string `json:"name,omitempty"`
+	Color string `json:"color,omitempty"`
+}
+
+// CheckboxProperty represents the checkbox property
+//
+// See https://developers.notion.com/reference/database#checkbox-configuration
+type CheckboxProperty struct{}
+
+// CreatedTimeProperty represents the created time property
+//
+// See https://developers.notion.com/reference/database#created-time-configuration
+type CreatedTimeProperty struct{}
+
+// LastEditedTimeProperty represents the last edited time property
+//
+// See https://developers.notion.com/reference/database#last-edited-time-configuration
+type LastEditedTimeProperty struct{}
 
 // Pagination represents a request pagination params
 //
