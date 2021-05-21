@@ -7,7 +7,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
+	"net/http/httputil"
 )
 
 // LocalError represents a client-side error, i.e. client can't build the request or parse the response
@@ -52,7 +54,9 @@ func (e ApplicationError) Error() string {
 
 // Options can customize Client behavior
 type Options struct {
-	RootURL string
+	RootURL    string
+	AddHeaders map[string]string
+	Trace      bool
 }
 
 // Client is a wrapper over http.Client to make it easier to use from the notion API
@@ -116,15 +120,41 @@ func (c *Client) newRequest(
 		req.URL.RawQuery = q.Encode()
 	}
 
+	for header, val := range c.opts.AddHeaders {
+		req.Header.Add(header, val)
+	}
+
+	if body != nil {
+		req.Header.Add("Content-Type", "application/json")
+	}
+
 	req = req.WithContext(ctx)
 
 	return req, nil
 }
 
 func (c *Client) do(r *http.Request, targetSuccess interface{}, targetFailure interface{}) error {
+	if c.opts.Trace {
+		body, err := httputil.DumpRequestOut(r, true)
+		if err != nil {
+			log.Printf("Trace request: %v", err)
+		} else {
+			log.Printf("Trace request:\n%s\n", string(body))
+		}
+	}
+
 	resp, err := c.httpClient.Do(r)
 	if err != nil {
 		return TransportError{URL: r.URL.String(), Inner: err}
+	}
+
+	if c.opts.Trace {
+		body, err := httputil.DumpResponse(resp, true)
+		if err != nil {
+			log.Printf("Trace response: %v", err)
+		} else {
+			log.Printf("Trace response:\n%s\n", string(body))
+		}
 	}
 
 	defer resp.Body.Close()
