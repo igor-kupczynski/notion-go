@@ -116,6 +116,10 @@ func (c *Client) newRequest(
 		req.URL.RawQuery = q.Encode()
 	}
 
+	if body != nil {
+		req.Header.Add("Content-Type", "application/json")
+	}
+
 	req = req.WithContext(ctx)
 
 	return req, nil
