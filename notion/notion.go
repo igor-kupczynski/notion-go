@@ -17,36 +17,23 @@ type Service struct {
 }
 
 // New creates a Service
-func New(token string) *Service {
-	return WithCustomHttpClient(token, http.DefaultClient)
+func New(token string, trace bool) *Service {
+	return WithCustomHttpClient(token, http.DefaultClient, trace)
 }
 
 // WithCustomHttpClient creates a Service using the custom http.Client
-func WithCustomHttpClient(token string, httpClient *http.Client) *Service {
-	rt := httpClient.Transport
-	if rt == nil {
-		rt = http.DefaultTransport
-	}
-	httpClient.Transport = &transport{
-		token:    token,
-		delegate: rt,
-	}
+func WithCustomHttpClient(token string, httpClient *http.Client, trace bool) *Service {
 	return &Service{
 		client: client.New(
 			httpClient,
-			client.Options{RootURL: root},
+			client.Options{
+				AddHeaders: map[string]string{
+					"Authorization":  fmt.Sprintf("Bearer %v", token),
+					"Notion-Version": version,
+				},
+				RootURL: root,
+				Trace:   trace,
+			},
 		),
 	}
-}
-
-type transport struct {
-	token    string
-	delegate http.RoundTripper
-}
-
-func (t *transport) RoundTrip(req *http.Request) (*http.Response, error) {
-	r := req.Clone(req.Context())
-	r.Header.Add("Authorization", fmt.Sprintf("Bearer %v", t.token))
-	r.Header.Add("Notion-Version", version)
-	return t.delegate.RoundTrip(r)
 }

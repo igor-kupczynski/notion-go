@@ -258,7 +258,7 @@ func TestService_RetrieveDatabase(t *testing.T) {
 					Body:       ioutil.NopCloser(bytes.NewBufferString(tt.respBody)),
 				}, nil
 			})
-			service := WithCustomHttpClient("token", httpClient)
+			service := WithCustomHttpClient("token", httpClient, false)
 
 			gotDB, gotErr := service.RetrieveDatabase(context.Background(), tt.databaseID)
 
@@ -525,7 +525,7 @@ func TestService_QueryDatabase(t *testing.T) {
 					Body:       ioutil.NopCloser(bytes.NewBufferString(tt.respBody)),
 				}, nil
 			})
-			service := WithCustomHttpClient("token", httpClient)
+			service := WithCustomHttpClient("token", httpClient, false)
 
 			gotDB, gotErr := service.QueryDatabase(context.Background(), tt.databaseID, tt.filter, tt.sorts, tt.pagination)
 
@@ -563,12 +563,12 @@ func TestService_QueryDatabase_Integration(t *testing.T) {
 		t.Skip("set NOTION_TOKEN to run this test")
 	}
 
-	s := New(token)
+	s := New(token, false)
 
 	result, err := s.QueryDatabase(
 		context.Background(),
 		"e65ccf14-e13b-48d1-a6d1-b14cd84c4bed",
-		&Filter{Property: "RRGi", Checkbox: &CheckboxFilterCondition{Equals: true}},
+		&Filter{Property: "RRGi", Checkbox: &CheckboxFilterCondition{Equals: false}},
 		[]Sort{{Timestamp: "created_time", Direction: SortAsc}},
 		nil,
 	)
@@ -602,7 +602,7 @@ func TestService_ListDatabases_Integration(t *testing.T) {
 
 	wantTitle := "Task List 5132beee"
 
-	s := New(token)
+	s := New(token, true)
 
 	// Get the list of the databases, list them one-by-one to exercise the pagination code path
 	var got []Database
