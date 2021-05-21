@@ -568,7 +568,7 @@ func TestService_QueryDatabase_Integration(t *testing.T) {
 	result, err := s.QueryDatabase(
 		context.Background(),
 		"e65ccf14-e13b-48d1-a6d1-b14cd84c4bed",
-		&Filter{Property: "RRGi", Checkbox: &CheckboxFilterCondition{Equals: false}},
+		&Filter{Property: "RRGi", Checkbox: &CheckboxFilterCondition{Equals: true}},
 		[]Sort{{Timestamp: "created_time", Direction: SortAsc}},
 		nil,
 	)
@@ -602,7 +602,7 @@ func TestService_ListDatabases_Integration(t *testing.T) {
 
 	wantTitle := "Task List 5132beee"
 
-	s := New(token, true)
+	s := New(token, false)
 
 	// Get the list of the databases, list them one-by-one to exercise the pagination code path
 	var got []Database
